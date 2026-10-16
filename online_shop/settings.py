@@ -20,6 +20,14 @@ ALLOWED_HOSTS = [
     if host.strip()
 ]
 
+# Render provides RENDER_EXTERNAL_HOSTNAME; also allow all onrender.com hosts.
+_render_host = os.environ.get("RENDER_EXTERNAL_HOSTNAME")
+if _render_host and _render_host not in ALLOWED_HOSTS:
+    ALLOWED_HOSTS.append(_render_host)
+for _default_host in ("shopnova-65yl.onrender.com", ".onrender.com"):
+    if _default_host not in ALLOWED_HOSTS:
+        ALLOWED_HOSTS.append(_default_host)
+
 INSTALLED_APPS = [
     "shop.admin_apps.GCommerceAdminConfig",
     "django.contrib.auth",
@@ -32,6 +40,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -83,8 +92,8 @@ else:
     }
 
 database_url = os.environ.get("DATABASE_URL")
-DATABASES["default"]=dj_database_url.parse(database_url)
-#postgresql://shopnova_lv76_user:1zgfm6GJVSJ8RjVYIQ5I7wGp64hmOtjd@dpg-db7ome25b2lc738n2480-a.virginia-postgres.render.com/shopnova_lv76
+if database_url:
+    DATABASES["default"] = dj_database_url.parse(database_url, conn_max_age=600)
 
 AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
